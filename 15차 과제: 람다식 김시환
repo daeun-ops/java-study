@@ -1,0 +1,166 @@
+- 람다식 사용법
+- 함수형 인터페이스
+- Variable Capture
+- 메소드, 생성자 레퍼런스
+
+## **1. 람다식(Lambda Expression) 사용법**
+
+람다식은 **익명 함수(Anonymous Function)**를 작성할 수 있는 문법으로, 불필요한 코드 작성을 줄이고 간결한 표현이 가능합니다.
+
+- **함수형 인터페이스**와 함께 사용됩니다.
+- 메소드 구현을 보다 **짧고 직관적으로** 작성할 수 있습니다.
+
+```java
+(매개변수) -> { 실행 코드 }
+```
+
+- **매개변수 1개일 때**: (x) -> x * x
+- **매개변수가 없을 때**: () -> System.out.println("Hello")
+- **매개변수가 여러 개일 때**: (x, y) -> x + y
+- **실행문이 한 줄이면 {} 생략 가능**
+- **반환값이 있는 경우** {} 생략 가능 (단, return이 필요 없음)
+
+람다식 예제
+
+```java
+public class LambdaExample {
+    public static void main(String[] args) {
+        // 1. 람다식을 활용한 간단한 연산
+        MathOperation addition = (a, b) -> a + b;
+        System.out.println(addition.operate(5, 3));  // 8
+        
+        // 2. 매개변수가 없는 람다식
+        Greeting greeting = () -> System.out.println("Hello, Lambda!");
+        greeting.sayHello();  // Hello, Lambda!
+    }
+
+    @FunctionalInterface
+    interface MathOperation {
+        int operate(int a, int b);
+    }
+
+    @FunctionalInterface
+    interface Greeting {
+        void sayHello();
+    }
+}
+
+```
+
+## **2. 함수형 인터페이스(Functional Interface)**
+
+**함수형 인터페이스**는 **추상 메서드를 하나만 가지는 인터페이스**로, 람다식과 함께 사용됩니다.
+
+- @FunctionalInterface **어노테이션**을 사용하면, 인터페이스가 함수형 인터페이스인지 컴파일러가 검증합니다.
+- 자바에서 기본 제공하는 함수형 인터페이스: Runnable, Callable, Supplier<T>, Consumer<T>, Function<T, R>, Predicate<T> 등
+
+### **함수형 인터페이스 예제**
+
+```java
+@FunctionalInterface
+interface Calculator {
+    int calculate(int x, int y);
+}
+
+public class FunctionalInterfaceExample {
+    public static void main(String[] args) {
+        Calculator sum = (x, y) -> x + y;
+        System.out.println(sum.calculate(10, 20));  // 30
+    }
+}
+
+```
+
+## **3. Variable Capture (변수 캡처)**
+
+람다식 내부에서 **외부 변수를 참조할 때 주의할 점**
+
+- **지역 변수는 final 또는 사실상 final이어야 함**
+- **인스턴스 변수와 정적 변수는 자유롭게 사용 가능**
+
+### **지역 변수 캡처 예제**
+
+```java
+public class VariableCaptureExample {
+    public static void main(String[] args) {
+        int localVar = 10;  // 사실상 final (값이 변경되지 않음)
+
+        Runnable r = () -> System.out.println("Captured: " + localVar);
+        r.run();  // Captured: 10
+
+        // localVar = 20; // ❌ 컴파일 오류 (지역 변수는 변경할 수 없음)
+    }
+}
+```
+
+---
+
+## **4. 메소드 레퍼런스(Method Reference)**
+
+메소드 레퍼런스는 **람다식을 더 간결하게 표현**할 수 있는 기능입니다.
+
+- 클래스명::메소드명 또는 객체참조::메소드명 형식 사용
+- **메소드 호출만 하는 람다식을 대체**할 때 유용
+
+### **기본 형태**
+
+| 표현 방식 | 설명 |
+| --- | --- |
+| ClassName::staticMethod | 정적 메소드 참조 |
+| objectReference::instanceMethod | 특정 객체의 인스턴스 메소드 참조 |
+| ClassName::instanceMethod | 임의의 객체의 인스턴스 메소드 참조 |
+| ClassName::new | 생성자 참조 |
+
+메소드 레퍼런스 예제
+
+```java
+import java.util.function.Function;
+
+public class MethodReferenceExample {
+    public static void main(String[] args) {
+        // 정적 메소드 참조
+        Function<String, Integer> strLength = String::length;
+        System.out.println(strLength.apply("Hello"));  // 5
+
+        // 인스턴스 메소드 참조
+        String str = "Lambda";
+        Runnable r = str::toUpperCase;
+        r.run();  // LAMBDA
+    }
+}
+
+```
+
+## **5. 생성자 레퍼런스(Constructor Reference)**
+
+생성자도 메소드 레퍼런스를 사용할 수 있습니다.
+
+```java
+interface PersonFactory {
+    Person create(String name, int age);
+}
+
+class Person {
+    String name;
+    int age;
+
+    Person(String name, int age) {
+        this.name = name;
+        this.age = age;
+    }
+}
+
+public class ConstructorReferenceExample {
+    public static void main(String[] args) {
+        // 람다식
+        PersonFactory lambdaFactory = (name, age) -> new Person(name, age);
+        
+        // 생성자 참조
+        PersonFactory refFactory = Person::new;
+
+        Person p1 = lambdaFactory.create("Alice", 25);
+        Person p2 = refFactory.create("Bob", 30);
+    }
+}
+
+```
